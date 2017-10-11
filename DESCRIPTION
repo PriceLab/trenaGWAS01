@@ -1,0 +1,26 @@
+Package: trenaGWAS
+Type: Package
+Title: explore regulatory variants in the context of trena modsl
+Version: 0.99.0
+Date: 2017-10-11
+Author: Paul Shannon<pshannon@systemsbiology.org>
+Maintainer: Paul Shannon<pshannon@systemsbiology.org>
+Imports:
+    trena,
+    trenaViz,
+    SNPlocs.Hsapiens.dbSNP144.GRCh38,
+    MotifDb
+Depends:
+    R (>= 3.4.0),
+    utils,
+    GenomicRanges
+Suggests:
+    RUnit,
+    knitr,
+    BiocGenerics,
+    rmarkdown
+Description:  explore GWAS hits in intro on TSNARE1 from https://www.ncbi.nlm.nih.gov/pmc/articles/PMC4112379/:
+    "Biological Insights from 108 Schizophrenia-Associated Genetic Loci"
+License: GPL-3
+biocViews: Transcription, GeneRegulation, NetworkInference, FeatureExtraction, Regression,
+    SystemsBiology, GeneExpression

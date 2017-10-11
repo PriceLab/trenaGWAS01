@@ -1,0 +1,17 @@
+exportClasses(trenaGWAS)
+
+exportMethods (
+   dataSummary,
+   setRegion,
+   getRegion
+   )
+
+export(
+   trenaGWAS
+   )
+
+importClassesFrom(methods, character, integer)
+importFrom(methods, new)
+import(trena)
+import(trenaViz)
+
