@@ -180,7 +180,7 @@ setMethod("findSNPsInFootprints", "trenaGWAS01",
            return(data.frame())
            }
         colnames(tbl.ov) <- c("snp", "fp")
-        tbl.snpFp <- tbl.snps[tbl.ov$snp,]
+        tbl.snpFp <- tbl.snps[unique(tbl.ov$snp),]
         rownames(tbl.snpFp) <- NULL
         addBedTrackFromDataFrame(obj@trenaViz, "imputedInFP", tbl.snpFp, color="magenta")
         tbl.snpFp

@@ -66,8 +66,8 @@ test_loadFootprintsAndSnps_thenIntersection <- function()
       )   # 85 seconds with SNPlocs package, 0.3 seconds with extdata/tbl.imputedSnps.chr8.RData
 
    tbl.snpsInFp <- findSNPsInFootprints(tgwas, tbl.snps, tbl.fp)
-
-
+   checkEquals(nrow(tbl.snpsInFp), 2)
+   checkEquals(sort(tbl.snpsInFp$rsid), c("rs12676511", "rs4976977"))
 
 } # test_loadFootprintsAndSnps_thenIntersection
 #------------------------------------------------------------------------------------------------------------------------
