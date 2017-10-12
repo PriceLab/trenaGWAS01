@@ -1,17 +1,27 @@
-exportClasses(trenaGWAS)
+exportClasses(trenaGWAS01)
 
 exportMethods (
    dataSummary,
    setRegion,
-   getRegion
+   getRegion,
+   loadFootprints,
+   loadSNPs,
+   findSNPsInFootprints,
+   displayMotif
    )
 
 export(
-   trenaGWAS
+   trenaGWAS01
    )
 
 importClassesFrom(methods, character, integer)
 importFrom(methods, new)
 import(trena)
 import(trenaViz)
+importFrom(trenaViz, showGenomicRegion)
+importFrom(trenaViz, addBedTrackFromDataFrame)
+importFrom(BSgenome, snpsById)
+import(SNPlocs.Hsapiens.dbSNP150.GRCh38)
+import(colorspace)
+
 

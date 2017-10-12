@@ -1,4 +1,4 @@
-Package: trenaGWAS
+Package: trenaGWAS01
 Type: Package
 Title: explore regulatory variants in the context of trena modsl
 Version: 0.99.0
@@ -8,7 +8,6 @@ Maintainer: Paul Shannon<pshannon@systemsbiology.org>
 Imports:
     trena,
     trenaViz,
-    SNPlocs.Hsapiens.dbSNP144.GRCh38,
     MotifDb
 Depends:
     R (>= 3.4.0),
