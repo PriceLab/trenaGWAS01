@@ -20,6 +20,10 @@ setGeneric("loadFootprints",  signature="obj", function(obj) standardGeneric("lo
 setGeneric("loadSNPs",        signature="obj", function(obj) standardGeneric("loadSNPs"))
 setGeneric("findSNPsInFootprints", signature="obj", function(obj, tbl.snps, tbl.fp) standardGeneric("findSNPsInFootprints"))
 setGeneric("displayMotif",    signature="obj", function(obj, motifName) standardGeneric("displayMotif"))
+
+setGeneric("assessSnpsInContextOfGeneModel", signature="obj", function(obj, tbl.snps, geneModel, targetGene,
+                                                                       matchThreshold, shoulder)
+              standardGeneric("assessSnpsInContextOfGeneModel"))
 #------------------------------------------------------------------------------------------------------------------------
 trenaViz.PORT.RANGE <- 8000:8020
 # database.host <- "bddsrds.globusgenomics.org"
@@ -27,15 +31,24 @@ database.host <- "whovian"
 #------------------------------------------------------------------------------------------------------------------------
 trenaGWAS01 = function(gwasLocusNumber, targetGene, targetGene.tss, quiet=TRUE)
 {
-   trena <- Trena("hg38", quiet)
+   local.trena <- Trena("hg38", quiet)
 
-   tv <- trenaViz(trenaViz.PORT.RANGE, quiet=quiet)
-   setGenome(tv, "hg38")
+   local.tv <- trenaViz(trenaViz.PORT.RANGE, quiet=quiet)
+   setGenome(local.tv, "hg38")
 
    obj <- .trenaGWAS01(gwasLocusNumber=gwasLocusNumber,
-                       targetGene=targetGene, targetGene.tss=targetGene.tss,
-                       trena=trena, trenaViz=tv,
+                       targetGene=targetGene,
+                       targetGene.tss=targetGene.tss,
+                       trena=local.trena,
+                       trenaViz=local.tv,
                        quiet=quiet)
+
+      # user will probably want direct access to these objects also
+   printf("creating user-level (global scope) 'trena' and 'tv' (trenaViz) objects....")
+   trena <<- local.trena
+   tv <<- local.tv
+
+   obj
 
 } # trenaGWAS01
 #------------------------------------------------------------------------------------------------------------------------
@@ -103,8 +116,9 @@ setMethod("loadFootprints", "trenaGWAS01",
 
        for(i in seq_len(length(tbls))){
           track.name <- names(sources)[i]
-          if(track.name %in% getTrackNames(obj@trenaViz))
-             removeTracksByName(obj@trenaViz, track.name)
+          # disabled until this gets fixed in igv.js (pshannon (12 oct 2017))
+          #if(track.name %in% getTrackNames(obj@trenaViz))
+          #   removeTracksByName(obj@trenaViz, track.name)
           columns.of.interest <- c("chrom", "motifStart", "motifEnd", "motifName")
 
           tbl <- tbls[[i]]
@@ -187,6 +201,90 @@ setMethod("findSNPsInFootprints", "trenaGWAS01",
         })
 
 #----------------------------------------------------------------------------------------------------
+setMethod("assessSnpsInContextOfGeneModel", "trenaGWAS01",
+
+     function(obj, tbl.snps, geneModel, targetGene, matchThreshold, shoulder){
+
+        stopifnot(all(c("chrom", "start", "end", "rsid") %in% colnames(tbl.snps)))
+
+        jaspar2016.pfms <- query(MotifDb, "jaspar2016")
+        human.pfms <- query(jaspar2016.pfms, "sapiens")
+        mouse.pfms <- query(jaspar2016.pfms, "mus")
+        rat.pfms   <- query(jaspar2016.pfms, "rnorvegicus")
+        pfms <- as.list(c(human.pfms, mouse.pfms, rat.pfms))   # 619
+
+        motifMatcher <- MotifMatcher("hg38", pfms)
+
+        for(r in seq_len(nrow(tbl.snps))){
+          rsid <- tbl.snps$rsid[r]
+          printf("assessing %s", rsid)
+          tbl.region <- with(tbl.snps[r,],
+                             data.frame(chrom=chrom, start=start-shoulder, end=end+shoulder, stringsAsFactors=FALSE))
+
+          tbl.wt  <- findMatchesByChromosomalRegion(motifMatcher, tbl.region, matchThreshold)
+          tbl.mut <- findMatchesByChromosomalRegion(motifMatcher, tbl.region, matchThreshold, variants=rsid)
+
+          tfs.wt <- c()
+          tfs.mut <- c()
+
+          if(nrow(tbl.wt) > 0){
+             tbl.wt$shortMotif <- unlist(lapply(tbl.wt$motifName,
+                                                function(s) {tokens <- strsplit(s, "-")[[1]]; return(tokens[length(tokens)])}))
+
+             tfs.wt <- c(tfs.wt, associateTranscriptionFactors(MotifDb, tbl.wt, source="TFClass", expand.rows=TRUE)$geneSymbol)
+             tfs.wt <- unique(c(tfs.wt, associateTranscriptionFactors(MotifDb, tbl.wt, source="MotifDb", expand.rows=TRUE)$geneSymbol))
+             if(any(is.na(tfs.wt)))
+                tfs.wt <- tfs.wt[-which(is.na(tfs.wt))]
+             } # nrow(tbl.wt) > 0
+
+          if(nrow(tbl.mut) > 0){
+             tbl.mut$shortMotif <- unlist(lapply(tbl.mut$motifName,
+                                                 function(s) {tokens <- strsplit(s, "-")[[1]]; return(tokens[length(tokens)])}))
+             tfs.mut <- c(tfs.mut, associateTranscriptionFactors(MotifDb, tbl.mut, source="TFClass", expand.rows=TRUE)$geneSymbol)
+             tfs.mut <- unique(c(tfs.mut, associateTranscriptionFactors(MotifDb, tbl.mut, source="MotifDb", expand.rows=TRUE)$geneSymbol))
+             if(any(is.na(tfs.mut)))
+                tfs.mut <- tfs.mut[-which(is.na(tfs.mut))]
+             } # nrow(tbl.mut) > 0
+
+
+          model.tfs <- geneModel$gene
+
+          tfs.wt <- unique(tfs.wt)
+          tfs.wt.inModel <- intersect(tfs.wt, model.tfs)
+
+          tfs.mut <- unique(tfs.mut)
+          tfs.mut.inModel <- intersect(tfs.mut, model.tfs)
+
+          tfs.lost <- setdiff(tfs.wt, tfs.mut)
+          tfs.gained <- setdiff(tfs.mut, tfs.wt)
+
+          tfs.inModel.lost   <- intersect(tfs.lost,   model.tfs)
+          tfs.inModel.gained <- intersect(tfs.gained, model.tfs)
+
+          printf("%s %s, tfs.wt,     %2d, in model: %2d", targetGene, rsid, length(tfs.wt),     length(tfs.wt.inModel))
+          printf("%s %s, tfs.mut,    %2d, in model: %2d", targetGene, rsid, length(tfs.mut),    length(tfs.mut.inModel))
+          printf("%s %s, tfs.lost,   %2d, in model: %2d", targetGene, rsid, length(tfs.lost),   length(tfs.inModel.lost))
+          printf("%s %s, tfs.gained, %2d, in model: %2d", targetGene, rsid, length(tfs.gained), length(tfs.inModel.gained))
+
+          if(length(tfs.inModel.lost) > 0){
+             tf.model.indices <- match(tfs.inModel.lost, model.tfs)
+             if(any(is.na(tf.model.indices)))
+                tf.model.indices <- tf.model.indices[-which(is.na(tf.model.indices))]
+             for(index in tf.model.indices)
+                printf("  tf %s rank %2d lost in model", model.tfs[index], index)
+             } # if tfs.inModel.lost
+
+          if(length(tfs.inModel.gained) > 0){
+             tf.model.indices <- match(tfs.inModel.gained, model.tfs)
+             if(any(is.na(tf.model.indices)))
+                tf.model.indices <- tf.model.indices[-which(is.na(tf.model.indices))]
+             for(index in tf.model.indices)
+                printf("  tf %s rank %2d gained in wg model", model.tfs[index], index)
+            } # if tfs.inModel.gained
+          } # for r
+     }) # assessSnpsInContextOfGeneModel
+
+#----------------------------------------------------------------------------------------------------
 setMethod("displayMotif", "trenaGWAS01",
 
      function(obj, motifName){
@@ -230,7 +328,6 @@ createCollapsedFootprintTrack <- function(expandFootprintsBy=10)
    trackName <- "fpCollapsed"
    if(trackName %in% getTrackNames(tv))
       removeTracksByName(tv, trackName)
-p
    addBedTrackFromDataFrame(tv, trackName, tbl.fpCollapsed, color="green")
 
      # find the imputed snp, collapsed fp overlaps

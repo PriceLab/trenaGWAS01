@@ -13,6 +13,7 @@ runTests <- function()
   test_dataSummary();
   test_setGetRegion()
   test_loadFootprintsAndSnps_thenIntersection()
+  test_assessSnpsInContextOfGeneModel()
 
 } # runTests
 #------------------------------------------------------------------------------------------------------------------------
@@ -71,11 +72,20 @@ test_loadFootprintsAndSnps_thenIntersection <- function()
 
 } # test_loadFootprintsAndSnps_thenIntersection
 #------------------------------------------------------------------------------------------------------------------------
+test_assessSnpsInContextOfGeneModel <- function()
+{
+   printf("--- test_assessSnpsInContextOfGeneModels")
+   load(system.file(package="trenaGWAS01", "extdata", "tbl.test.snpsInFp.Rdata"))
+   load(system.file(package="trenaGWAS01", "extdata", "tbl.geneModel.cer.RData"))
+   targetGene <- "TSNARE1"
+   assessSnpsInContextOfGeneModel(tgwas, tbl.snpsInFp, tbl.geneModel, targetGene, matchThreshold=90, shoulder=8)
+
+} # test_assessSnpsInContextOfGeneModel
+#------------------------------------------------------------------------------------------------------------------------
 test_displayMotif <- function()
 {
    printf("--- test_motif")
    setRegion(tgwas, "chr8:142,230,914-142,234,913") # rs49776977 is at 142,232,793
-
 
 } # test_loadSNPs
 #------------------------------------------------------------------------------------------------------------------------

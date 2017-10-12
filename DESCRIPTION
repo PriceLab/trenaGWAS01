@@ -1,18 +1,17 @@
 Package: trenaGWAS01
 Type: Package
 Title: explore regulatory variants in the context of trena modsl
-Version: 0.99.1
-Date: 2017-10-11
+Version: 0.99.4
+Date: 2017-10-12
 Author: Paul Shannon<pshannon@systemsbiology.org>
 Maintainer: Paul Shannon<pshannon@systemsbiology.org>
-Imports:
-    trena,
-    trenaViz,
-    MotifDb
 Depends:
     R (>= 3.4.1),
     utils,
-    GenomicRanges
+    GenomicRanges,
+    trena,
+    trenaViz,
+    MotifDb
 Suggests:
     RUnit,
     knitr,
