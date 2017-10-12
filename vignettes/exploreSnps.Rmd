@@ -1,0 +1,68 @@
+---
+title: "Assess GWAS SNPs In the Context of a TRENA Gene Model"
+output: html_document
+---
+
+
+```{r load the package}
+library(trenaGWAS01)
+```
+
+# chunk 1: initialize the package, establish connection to trenaViz in
+  your web browser
+
+```{r create the object; all data is included}
+tgwas <- trenaGWAS01(gwasLocusNumber=5, targetGene="TSNARE1", targetGene.tss=142354831, quiet=TRUE)
+```
+
+
+# chunk 2: direct the igv.js genome browser to display a small (4kb)
+  portion of the GWAS locus 5
+
+```{r display the region of interest}
+setRegion(tgwas, "chr8:142,230,914-142,234,913") # rs49776977 is at 142,232,793
+
+```
+
+# chunk 3:  load DNase footprints for the currently displayed region,
+  from four databases hosted by BDDS (UChicago).   These four are the
+  result processing the same ENCODE brain (mixed tissue) footprint
+  reads, using two different methods (HINT and Wellington) and two
+  different alignment seeds sizes.  This step currently takes a few
+  minutes, longer that we like.  Future refinement to this package
+  will provide choice of database, choice of alternate open chromatin
+  data (ATAC-seq, for instance), and much improved speeds
+
+
+```{r load DNase footprints}
+tbl.fp <- loadFootprints(tgwas)
+
+```
+
+load SNPs provided by the GWAS study (reference needed)
+
+```{r load SNPs}
+tbl.snps <- loadSNPs(tgwas)
+
+```
+
+# chunk 5: identify which of these SNPs intersect with the previously
+  loaded footprints
+
+```{r find intersection}
+tbl.snpsInFp <- findSNPsInFootprints(tgwas, tbl.snps, tbl.fp)
+
+```
+
+# chunk 6: load a previously calculated trena model,  built upon
+  RNA-seq data from the cerebellum.  (In another document we give
+  several examples of gene regulatory model construction.)  The
+  "assess..." function reports any transcription factor in the model
+  which is gained or lost as a consequence of each SNP.
+
+```{r load model, assess SNPs}
+load(system.file(package="trenaGWAS01", "extdata", "tbl.geneModel.cer.RData"))
+targetGene <- "TSNARE1"
+assessSnpsInContextOfGeneModel(tgwas, tbl.snpsInFp, tbl.geneModel, targetGene, matchThreshold=90, shoulder=8)
+
+```

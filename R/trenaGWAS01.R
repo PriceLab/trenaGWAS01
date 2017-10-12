@@ -26,15 +26,15 @@ setGeneric("assessSnpsInContextOfGeneModel", signature="obj", function(obj, tbl.
               standardGeneric("assessSnpsInContextOfGeneModel"))
 #------------------------------------------------------------------------------------------------------------------------
 trenaViz.PORT.RANGE <- 8000:8020
-# database.host <- "bddsrds.globusgenomics.org"
-database.host <- "whovian"
+database.host <- "bddsrds.globusgenomics.org"
+#database.host <- "whovian"
 #------------------------------------------------------------------------------------------------------------------------
 trenaGWAS01 = function(gwasLocusNumber, targetGene, targetGene.tss, quiet=TRUE)
 {
    local.trena <- Trena("hg38", quiet)
 
    local.tv <- trenaViz(trenaViz.PORT.RANGE, quiet=quiet)
-   setGenome(local.tv, "hg38")
+   #setGenome(local.tv, "hg38")
 
    obj <- .trenaGWAS01(gwasLocusNumber=gwasLocusNumber,
                        targetGene=targetGene,
@@ -44,7 +44,7 @@ trenaGWAS01 = function(gwasLocusNumber, targetGene, targetGene.tss, quiet=TRUE)
                        quiet=quiet)
 
       # user will probably want direct access to these objects also
-   printf("creating user-level (global scope) 'trena' and 'tv' (trenaViz) objects....")
+   printf("  also creating user-level (global scope) 'trena' and 'tv' (trenaViz) objects....")
    trena <<- local.trena
    tv <<- local.tv
 
