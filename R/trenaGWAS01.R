@@ -34,7 +34,7 @@ trenaGWAS01 = function(gwasLocusNumber, targetGene, targetGene.tss, quiet=TRUE)
    local.trena <- Trena("hg38", quiet)
 
    local.tv <- trenaViz(trenaViz.PORT.RANGE, quiet=quiet)
-   #setGenome(local.tv, "hg38")
+   setGenome(local.tv, "hg38")
 
    obj <- .trenaGWAS01(gwasLocusNumber=gwasLocusNumber,
                        targetGene=targetGene,

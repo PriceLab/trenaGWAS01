@@ -25,7 +25,6 @@ import(trenaViz)
 #importFrom(trenaViz, addBedTrackFromDataFrame)
 
 importFrom(BSgenome, snpsById)
-import(SNPlocs.Hsapiens.dbSNP150.GRCh38)
 import(colorspace)
 
 

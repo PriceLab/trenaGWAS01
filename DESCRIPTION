@@ -1,8 +1,8 @@
 Package: trenaGWAS01
 Type: Package
 Title: explore regulatory variants in the context of trena modsl
-Version: 0.99.4
-Date: 2017-10-12
+Version: 0.99.6
+Date: 2017-10-13
 Author: Paul Shannon<pshannon@systemsbiology.org>
 Maintainer: Paul Shannon<pshannon@systemsbiology.org>
 Depends:
