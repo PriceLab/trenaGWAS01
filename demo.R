@@ -12,7 +12,7 @@
 #
 
 library(trenaGWAS01)
-stopifnot(packageVersion("trenaGWAS01") >= "0.99.4")
+stopifnot(packageVersion("trenaGWAS01") >= "0.99.6")
 
 stopifnot(packageVersion("MotifDb") >= "1.19.17")
 stopifnot(packageVersion("BrowserViz") >= "1.9.15")
